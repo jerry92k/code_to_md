@@ -5,9 +5,8 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CodeToMd {
 
@@ -37,20 +36,34 @@ public class CodeToMd {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
         String createdDate = simpleDateFormat.format(new Date(time.toMillis()));
 
-        String preContent=makePreContent(createdDate);
+        String filename=path.getFileName().toString();
+        String fileExtension=filename.split("\\.")[1];
+        String subjectTitle=getSubjectTitle(filename);
+        String preContent=makePreContent(createdDate,subjectTitle);
 
         List<String> fileContent= new ArrayList<>();
         fileContent.add(preContent);
-        fileContent.addAll(readSourceCode(path));
+        fileContent.addAll(readSourceCode(path,fileExtension));
 
-        String filename = makeMdFileName(path.getFileName().toString(),createdDate);
-        writeToMd(fileContent,filename);
+        String mdFilename = makeMdFileName(subjectTitle,createdDate);
+        writeToMd(fileContent,mdFilename);
     }
 
-    private String makePreContent(String createdDate) {
+    private String getSubjectTitle(String filename) {
+        String[] strs=filename.split("_");
+        StringBuilder sb=new StringBuilder();
+        // medium 단어 생략
+        String subjectTitle = Arrays.stream(strs)
+                .filter(str->!str.equals("medium"))
+                .map(str-> Character.toUpperCase(str.charAt(0))+str.substring(1))
+                .collect(Collectors.joining(" "));
+        return subjectTitle;
+    }
+
+    private String makePreContent(String createdDate, String subjectTitle) {
         return "---\n" +
                 "layout: post\n" +
-                "title: LeetCode - 33. Search in Rotated Sorted Array\n" +
+                "title: LeetCode - "+subjectTitle+"\n" +
                 "date: "+createdDate+" 00:00:00\n" +
                 "categories: leetcode\n" +
                 "---\n";
@@ -58,8 +71,7 @@ public class CodeToMd {
     }
 
     private String makeMdFileName(String filename, String createdDate){
-        filename= filename.substring(0,filename.length()-5)+".md";
-        return "mds/"+createdDate+"-[medium] "+filename;
+        return "mds/"+createdDate+"-[medium] "+filename.split("\\.")[0]+".md";
     }
 
     private void writeToMd(List<String> fileContent,String filename) {
@@ -80,11 +92,11 @@ public class CodeToMd {
         }
     }
 
-    public List<String> readSourceCode(Path path){
+    public List<String> readSourceCode(Path path, String fileExtension){
         List<String> lines=new ArrayList<>();
         try(Reader reader = new FileReader(path.toString())) {
             try(BufferedReader bufferedReader = new BufferedReader(reader)){
-                lines.add("```java");
+                lines.add("```"+fileExtension);
 
                 String line="";
                 while((line=bufferedReader.readLine())!=null){
