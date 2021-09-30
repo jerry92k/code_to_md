@@ -57,7 +57,7 @@ public class CodeToMd {
                 .filter(str->!str.equals("medium"))
                 .map(str-> Character.toUpperCase(str.charAt(0))+str.substring(1))
                 .collect(Collectors.joining(" "));
-        return subjectTitle;
+        return subjectTitle.split("\\.")[0];
     }
 
     private String makePreContent(String createdDate, String subjectTitle) {
@@ -71,7 +71,7 @@ public class CodeToMd {
     }
 
     private String makeMdFileName(String filename, String createdDate){
-        return "mds/"+createdDate+"-[medium] "+filename.split("\\.")[0]+".md";
+        return "mds/"+createdDate+"-[medium] "+filename+".md";
     }
 
     private void writeToMd(List<String> fileContent,String filename) {
