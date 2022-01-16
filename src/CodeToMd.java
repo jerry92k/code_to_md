@@ -43,7 +43,7 @@ public class CodeToMd {
 
         List<String> fileContent= new ArrayList<>();
         fileContent.add(preContent);
-        fileContent.addAll(readSourceCode(path,fileExtension));
+        fileContent.addAll(readSourceCodeWithNio2(path,fileExtension));
 
         String mdFilename = makeMdFileName(subjectTitle,createdDate);
         writeToMd(fileContent,mdFilename);
@@ -92,7 +92,20 @@ public class CodeToMd {
         }
     }
 
-    public List<String> readSourceCode(Path path, String fileExtension){
+    public List<String> readSourceCodeWithNio2(Path path, String fileExtension){
+        List<String> lines=new ArrayList<>();
+        lines.add("```"+fileExtension);
+        try {
+            List<String> readLines = Files.readAllLines(path);
+            lines.addAll(readLines);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        lines.add("```");
+        return lines;
+    }
+
+    public List<String> readSourceCodeWithIo(Path path, String fileExtension){
         List<String> lines=new ArrayList<>();
         try(Reader reader = new FileReader(path.toString())) {
             try(BufferedReader bufferedReader = new BufferedReader(reader)){
